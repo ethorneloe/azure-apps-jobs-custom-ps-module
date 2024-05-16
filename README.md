@@ -1,5 +1,5 @@
-
-This is a work in progress
+# STATUS
+This is a work in progress, and these steps are not yet completed/tested.
 
 # Overview
 This repository provides a step-by-step guide for running custom PowerShell module functions as Azure Container Apps Jobs.
