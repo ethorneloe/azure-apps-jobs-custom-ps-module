@@ -581,10 +581,10 @@ The docker file in this repo simply uses the microsoft azure powershell image, a
      "TERM=dumb"
    )
    ```
-   <br />
+   
    Bash
    ```Bash
-   $ENV_VARS=(
+   ENV_VARS=(
      "PARAMS=secretref:$FUNCTION_NAME-params",
      "FUNCTION_NAME=$FUNCTION_NAME",
      "UAMI_CLIENT_ID=$UAMI_CLIENT_ID",
