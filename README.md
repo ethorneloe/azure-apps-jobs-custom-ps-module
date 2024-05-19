@@ -580,7 +580,7 @@ The docker file in this repo uses the microsoft azure powershell image as a base
    ```
    <br />
 
-1. Configure env vars for the job
+1. Configure env vars for the job.  The powershell file called by the entrypoint script will use these to execute the module function.
    
    PowerShell       
    ```powershell
