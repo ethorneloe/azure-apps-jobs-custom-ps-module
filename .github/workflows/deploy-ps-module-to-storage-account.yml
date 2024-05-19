@@ -1,0 +1,72 @@
+name: Deploy PowerShell Modules to Azure Storage Account
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Azure CLI
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Run Azure PowerShell inline script
+        uses: azure/powershell@v2
+        with:
+          inlineScript: |
+
+            # Sync the PowerShell folder to the Azure Storage container
+            $sourcePath = "./powershell/modules"
+            $containerName = '${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}'
+            $storageAccountName = '${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}'
+
+            # Get all module directories
+            $moduleDirs = Get-ChildItem -Path $sourcePath -Directory
+
+            foreach ($moduleDir in $moduleDirs) {
+                # Find the .psd1 file in the module directory
+                $psd1File = Get-ChildItem -Path $moduleDir.FullName -Include *.psd1 -File
+                if ($null -eq $psd1File) {
+                    throw "No .psd1 file found in module directory '$($moduleDir.FullName)'."
+                }
+
+                # Read the module version from the .psd1 file
+                $content = Get-Content -Path $psd1File[0].FullName
+                $versionLine = $content | Select-String -Pattern "ModuleVersion\s*=\s*'(\d+\.\d+\.\d+)'"
+                if ($versionLine -eq $null) {
+                    throw "No ModuleVersion found in $($psd1File[0].FullName)"
+                }
+
+                $version = $versionLine.Matches.Groups[1].Value
+                Write-Output "Found version $version for module $($moduleDir.Name)"
+
+                # Create versioned path
+                $versionedPath = "$($moduleDir.Name)/$version"
+
+                # Recursively get files with specific extensions
+                $files = Get-ChildItem -Recurse -Path $moduleDir.FullName -Include *.psm1, *.psd1, *.ps1 -File
+
+                # Upload files for this module, maintaining directory structure
+                foreach ($file in $files) {
+                    $relativePath = $file.FullName.Substring($sourcePath.Length + 1).Replace("\", "/")
+                    $uploadPath = "$versionedPath/$relativePath"
+                    Write-Output "Uploading $uploadPath..."
+                    Set-AzStorageBlobContent -File $file.FullName -Container $containerName -Blob $uploadPath -Context $storageContext -Force
+                }
+            }
+          azPSVersion: "latest"
