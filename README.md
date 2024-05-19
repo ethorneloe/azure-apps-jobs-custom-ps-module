@@ -653,4 +653,7 @@ The docker file in this repo uses the microsoft azure powershell image as a base
 
 Run the job manually.  Check that the module function executes and output is displayed in job logs.
 
+## Clean up
+Delete the Azure resource group.
+
 
