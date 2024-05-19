@@ -12,7 +12,7 @@ This repository provides a step-by-step guide for running custom PowerShell modu
 - An Azure subscription with privileged access.
 - A GitHub account.
 - Familiarity with Azure resource deployment and GitHub repo configuration.
-- A workstation with Azure CLI installed
+- A workstation with Azure CLI installed.
 
 # Why Use Azure Container Apps Jobs with Custom PowerShell Module Functions
 - **Ephemeral Execution** - Each job runs in its own container which is created and destroyed whenever the job needs to execute.
@@ -27,16 +27,19 @@ This repository provides a step-by-step guide for running custom PowerShell modu
 
 # Configuration Steps
 
-## GitHub 
+## Copy the repo
 1. Feel free to make a copy of this repo using the button below.  When the repo creation page comes up, set the scope of the repo to `private`.
 [![Create a Copy](https://img.shields.io/badge/-Create%20a%20Copy-darkgreen)](https://github.com/ethorneloe/azure-apps-jobs-custom-ps-module/generate)
 
+### Storage account deployment workflow
+This needs to be stup later after the Azure resources are created
+1. The `deploy-module-to-storage-account.yml` workflow deploys the versioned folder of the PowerShell module to the Azure Storage Account.  
 
 We have to have steps to build the Azure resources, then deploy the custom module into the storage account.  So you will need a workflow to deploy the module to the storage account as a versioned folder. 
 
 
 ## Docker
-The docker file in this repo simply uses the microsoft azure powershell image, and adds a PowerShell entrypoint that makes use of the Azure Container Apps Job environment variables to execute the custom module function.
+The docker file in this repo uses the microsoft azure powershell image as a base, and adds a PowerShell entrypoint that makes use of the Azure Container Apps Job environment variables to execute the custom module function.
 
 
 
@@ -87,7 +90,7 @@ The docker file in this repo simply uses the microsoft azure powershell image, a
    ```
    
    <br />
-1. Add in a path to the function patExecute this as is, or feel free to change the naming convention as required.
+1. Execute this as is, or feel free to change the naming convention as required.
 
    PowerShell
    ```powershell
@@ -127,7 +130,7 @@ The docker file in this repo simply uses the microsoft azure powershell image, a
    UAMI_NAME="uami-pscustommodule-$RANDOM_5_DIGITS"
    ```
    <br />
-1. Create a file that contains the parameters for the function (You need to make an example function and supply instructions for the params needed.).  Once done, set the params variable.
+1. Create a file that contains the parameters for the function.   (You need to make an example function and supply instructions for the params needed.).  Once done, set the params variable.
    PowerShell
    ```powershell
    $FUNCTION_PARAMS_FILEPATH = '<your local params filepath>'
