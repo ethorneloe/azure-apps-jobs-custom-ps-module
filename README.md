@@ -98,8 +98,9 @@ The docker file in this repo uses the microsoft azure powershell image as a base
    $CONTAINER_IMAGE_NAME = 'pscustommodule:1.0'
    $CONTAINER_REGISTRY_NAME = "pscustommodule$RANDOM_5_DIGITS"
    $CONTAINER_APPS_ENVIRONMENT_NAME = "cae-pscustommodule-$RANDOM_5_DIGITS"
-   $FUNCTION_NAME = 'Get-ResourcesInGroup'
+   $FUNCTION_NAME = 'Get-ResourceCount'
    $CONTAINER_APPS_JOB_NAME = "caj-pscustommodule_$FUNCTION_NAME"
+   $GITHUB_SERVICE_PRINCIPLE_NAME = "sp-github-pscustommodule-$RANDOM_5_DIGITS"
    $KEYVAULT_NAME = "kv-pscustommodule-$RANDOM_5_DIGITS"
    $KEYVAULT_SECRET_NAME = "$FUNCTION_NAME-params"
    $LOG_ANALYTICS_WORKSPACE_NAME = "workspace-pscustommodule-$RANDOM_5_DIGITS"
@@ -117,8 +118,9 @@ The docker file in this repo uses the microsoft azure powershell image as a base
    CONTAINER_IMAGE_NAME='pscustommodule:1.0'
    CONTAINER_REGISTRY_NAME="pscustommodule$RANDOM_5_DIGITS"
    CONTAINER_APPS_ENVIRONMENT_NAME="cae-pscustommodule-$RANDOM_5_DIGITS"
-   FUNCTION_NAME='Get-ResourcesInGroup'
+   FUNCTION_NAME='Get-ResourceCount'
    CONTAINER_APPS_JOB_NAME="caj-pscustommodule_$FUNCTION_NAME"
+   GITHUB_SERVICE_PRINCIPLE_NAME="sp-github-pscustommodule-$RANDOM_5_DIGITS"
    KEYVAULT_NAME="kv-pscustommodule-$RANDOM_5_DIGITS"
    KEYVAULT_SECRET_NAME="$FUNCTION_NAME-params"
    LOG_ANALYTICS_WORKSPACE_NAME="workspace-pscustommodule-$RANDOM_5_DIGITS"
@@ -130,17 +132,6 @@ The docker file in this repo uses the microsoft azure powershell image as a base
    UAMI_NAME="uami-pscustommodule-$RANDOM_5_DIGITS"
    ```
    <br />
-1. Create a file that contains the parameters for the function.   (You need to make an example function and supply instructions for the params needed.).  Once done, set the params variable.
-   PowerShell
-   ```powershell
-   $FUNCTION_PARAMS_FILEPATH = '<your local params filepath>'
-   ```
-   
-   Bash
-   ```bash
-   FUNCTION_PARAMS_FILEPATH='<your local params filepath>'
-   ```
-   
 1. Create the resource group.
    ```
    az group create --name $RESOURCE_GROUP_NAME --location $LOCATION --output none
@@ -168,7 +159,7 @@ The docker file in this repo uses the microsoft azure powershell image as a base
      --output none
    ```
    <br />
-1. Get your Azure user account ID and assign the value to `USER_ID`.
+1. Save your Azure user account ID into a variable.
 
    PowerShell
    ```powershell
@@ -201,6 +192,57 @@ The docker file in this repo uses the microsoft azure powershell image as a base
      --output none
    ```
    <br />
+1. Create a user-assigned managed identity(uami).  This will be used to access the secret, the container registry later on, and also can be used inside the GitHub workflows that run in the container apps job for performing operations in Azure.
+   
+   PowerShell
+   ```powershell
+   az identity create `
+     --resource-group $RESOURCE_GROUP_NAME `
+     --name $UAMI_NAME `
+     --location $LOCATION `
+     --output none
+   ```
+   
+   Bash
+   ```bash
+   az identity create \
+     --resource-group $RESOURCE_GROUP_NAME \
+     --name $UAMI_NAME \
+     --location $LOCATION \
+     --output none
+   ```
+   <br />   
+1. Get the `id` and `clientId` of the `uami`.
+
+   PowerShell
+   ```powershell
+   $UAMI_CLIENT_ID = az identity show --name $UAMI_NAME --resource-group $RESOURCE_GROUP_NAME --query clientId --output tsv
+   $UAMI_RESOURCE_ID = az identity show --name $UAMI_NAME --resource-group $RESOURCE_GROUP_NAME --query id --output tsv
+   ```
+   
+   Bash
+   ```bash
+   UAMI_CLIENT_ID=$(az identity show --name $UAMI_NAME --resource-group $RESOURCE_GROUP_NAME --query clientId --output tsv)
+   UAMI_RESOURCE_ID=$(az identity show --name $UAMI_NAME --resource-group $RESOURCE_GROUP_NAME --query id --output tsv)
+   ```
+   <br />
+1. Create a file that contains the parameters for the example module function(Get-ResourceCount).
+   ```
+   {
+      "ResourceGroupName" : "<Resource group name created earler>",
+      "ManagedIdentityClientId" : "<Client Id of uami created earlier>"
+   }
+   ```
+1. Place params filepath into a variable.
+   PowerShell
+   ```powershell
+   $FUNCTION_PARAMS_FILEPATH = '<your local params filepath>'
+   ```
+   
+   Bash
+   ```bash
+   FUNCTION_PARAMS_FILEPATH='<your local params filepath>'
+   ```
 1. Create a new secret in the key vault for the Function parameters.  *The goal here is to show how function params can be pulled from a keyvault with Azure Container Apps Jobs*
    
    PowerShell
@@ -239,40 +281,6 @@ The docker file in this repo uses the microsoft azure powershell image as a base
      --vault-name $KEYVAULT_NAME \
      --query id \
      --output tsv)
-   ```
-   <br />
-1. Create a user-assigned managed identity(uami).  This will be used to access the secret, the container registry later on, and also can be used inside the GitHub workflows that run in the container apps job for performing operations in Azure.
-   
-   PowerShell
-   ```powershell
-   az identity create `
-     --resource-group $RESOURCE_GROUP_NAME `
-     --name $UAMI_NAME `
-     --location $LOCATION `
-     --output none
-   ```
-   
-   Bash
-   ```bash
-   az identity create \
-     --resource-group $RESOURCE_GROUP_NAME \
-     --name $UAMI_NAME \
-     --location $LOCATION \
-     --output none
-   ```
-   <br />   
-1. Get the `id` and `clientId` of the `uami`.
-
-   PowerShell
-   ```powershell
-   $UAMI_CLIENT_ID = az identity show --name $UAMI_NAME --resource-group $RESOURCE_GROUP_NAME --query clientId --output tsv
-   $UAMI_RESOURCE_ID = az identity show --name $UAMI_NAME --resource-group $RESOURCE_GROUP_NAME --query id --output tsv
-   ```
-   
-   Bash
-   ```bash
-   UAMI_CLIENT_ID=$(az identity show --name $UAMI_NAME --resource-group $RESOURCE_GROUP_NAME --query clientId --output tsv)
-   UAMI_RESOURCE_ID=$(az identity show --name $UAMI_NAME --resource-group $RESOURCE_GROUP_NAME --query id --output tsv)
    ```
    <br />
 1. Create a `Key Vault Secrets User` role assignment on the key vault for the `uami`. Note the value used with `--role` which corresponds to the `Key Vault Secrets User` role. Microsoft recommends using the id for roles in the event they are renamed.
@@ -343,7 +351,7 @@ The docker file in this repo uses the microsoft azure powershell image as a base
      --output none
    ```
    <br />
-1.  Create a container for the modules.
+1.  Create a blob container for the custom PowerShell modules.
 
     PowerShell
    ```powershell
@@ -365,7 +373,7 @@ The docker file in this repo uses the microsoft azure powershell image as a base
     --output none
    ```
 
-1. Grant yourself the `Storage Blob Data Owner` role for the container.
+1. Grant yourself the `Storage Blob Data Owner` role on the blob container.
    
     PowerShell
    ```powershell
@@ -385,7 +393,7 @@ The docker file in this repo uses the microsoft azure powershell image as a base
     --output none
    ```
 
-1. Grant the `uami` read access to the blob.
+1. Grant the `uami` read access to the blob container.
 
    PowerShell
    ```powershell
@@ -404,10 +412,13 @@ The docker file in this repo uses the microsoft azure powershell image as a base
      --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RESOURCE_GROUP_NAME/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT_NAME/blobServices/default/containers/$STORAGE_ACCOUNT_CONTAINER_NAME" \
      --output none
    ```
+1. Create the service principle to be used for deployment from GitHub.
+
+1. Grant the service principle contributor access to the blob container.
 
    If you have not already done so, take some time if you like to check the resources in the Azure Portal to confirm the `uami` and `keyvault` resources are present and the secret is configured correctly with the Function params.  Also check the role assignment on the keyvault for the `uami`.  Continue to the next steps if everything looks ok.
    <br />
-### Create Container-Related Resources and Log Analytics Workspace
+### Create Container App Resources and Log Analytics Workspace
 
 1. Create the container registry(acr).
    
@@ -569,7 +580,7 @@ The docker file in this repo uses the microsoft azure powershell image as a base
    ```
    <br />
 
-1. Configure env vars for the job
+1. Configure env vars for the job.  The powershell file called by the entrypoint script will use these to execute the module function.
    
    PowerShell       
    ```powershell
