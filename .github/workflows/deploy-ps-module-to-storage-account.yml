@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "powershell/modules/**"
   workflow_dispatch:
 
 jobs:
