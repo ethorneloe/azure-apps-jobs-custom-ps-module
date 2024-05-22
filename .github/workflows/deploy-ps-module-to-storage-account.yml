@@ -40,6 +40,8 @@ jobs:
             # Get all module directories
             $moduleDirs = Get-ChildItem -Path $sourcePath -Directory
 
+            get-azcontext
+
             $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName -UseConnectedAccount
 
             # Loop through each module directory and deploy versioned folder
