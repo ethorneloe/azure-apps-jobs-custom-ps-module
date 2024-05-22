@@ -71,7 +71,9 @@ jobs:
 
                 # Upload files for this module, maintaining directory structure.  Extract the filenames from the module name part of the path (...\moduleName\folder\file.ps1 -> folder\file.ps1).
                 foreach ($file in $files) {
+                    $file.FullName
                     $relativePath = ($file.FullName -split("$($moduleDir.Name)\\"))[1]
+                    $relativePath
                     $uploadPath = "$versionedPath/$relativePath"
                     Write-Output "Uploading $uploadPath..."
                     Set-AzStorageBlobContent -File $file.FullName -Container $containerName -Blob $uploadPath -Context $storageContext -Force | Out-Null
