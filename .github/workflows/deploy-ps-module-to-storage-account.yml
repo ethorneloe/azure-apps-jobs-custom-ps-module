@@ -41,8 +41,6 @@ jobs:
             # Get all module directories
             $moduleDirs = Get-ChildItem -Path $sourcePath -Directory
 
-            get-azcontext
-
             $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName -UseConnectedAccount
 
             # Loop through each module directory and deploy versioned folder
@@ -76,7 +74,7 @@ jobs:
                     $relativePath = $file.FullName.Substring($sourcePath.Length + 1).Replace("\", "/")
                     $uploadPath = "$versionedPath/$relativePath"
                     Write-Output "Uploading $uploadPath..."
-                    Set-AzStorageBlobContent -File $file.FullName -Container $containerName -Blob $uploadPath -Context $storageContext -Force
+                    Set-AzStorageBlobContent -File $file.FullName -Container $containerName -Blob $uploadPath -Context $storageContext -Force | Out-Null
                 }
             }
           azPSVersion: "latest"

@@ -14,9 +14,7 @@
 .EXAMPLE
     Get-ResourceCount -ResourceGroupName "MyResourceGroup" -ManagedIdentityClientId "12345678-abcd-1234-efgh-1234567890ab"
 
-    This example retrieves and outputs the number of resources in the resource group named "MyResourceGroup" using the specified managed identity.
-  
-    
+    This example retrieves and outputs the number of resources in the resource group named "MyResourceGroup" using the specified managed identity. 
 #>
 function Get-ResourceCount {
     [CmdletBinding()]
