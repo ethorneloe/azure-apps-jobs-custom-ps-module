@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  deploy-ps-modules-to-azure-storage:
     runs-on: ubuntu-latest
 
     permissions:
@@ -39,6 +39,8 @@ jobs:
 
             # Get all module directories
             $moduleDirs = Get-ChildItem -Path $sourcePath -Directory
+
+            $moduleDirs
 
             foreach ($moduleDir in $moduleDirs) {
                 # Find the .psd1 file in the module directory
