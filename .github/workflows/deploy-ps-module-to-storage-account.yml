@@ -40,28 +40,21 @@ jobs:
             # Get all module directories
             $moduleDirs = Get-ChildItem -Path $sourcePath -Directory
 
-            $moduleDirs
-
-
+            # Loop through each module directory and deploy versioned folder
             foreach ($moduleDir in $moduleDirs) {
 
-                write-output "fullname"
-                
-                $moduleDir.FullName
-
                 # Find the .psd1 file in the module directory
-                $psd1File = Get-ChildItem -Path $moduleDir.FullName -Include *.psd1 -File
-
+                $psd1File = Get-ChildItem -Path $moduleDir.FullName | Where-Object {$_.extension -eq '.psd1'}
 
                 if ($null -eq $psd1File) {
                     throw "No .psd1 file found in module directory '$($moduleDir.FullName)'."
                 }
 
                 # Read the module version from the .psd1 file
-                $content = Get-Content -Path $psd1File[0].FullName
+                $content = Get-Content -Path $psd1File.FullName
                 $versionLine = $content | Select-String -Pattern "ModuleVersion\s*=\s*'(\d+\.\d+\.\d+)'"
                 if ($versionLine -eq $null) {
-                    throw "No ModuleVersion found in $($psd1File[0].FullName)"
+                    throw "No ModuleVersion found in $($psd1File.FullName)"
                 }
 
                 $version = $versionLine.Matches.Groups[1].Value

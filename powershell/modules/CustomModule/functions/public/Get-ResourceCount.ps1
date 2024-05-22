@@ -16,6 +16,7 @@
 
     This example retrieves and outputs the number of resources in the resource group named "MyResourceGroup" using the specified managed identity.
 
+
     
 
 #>
