@@ -75,9 +75,7 @@ jobs:
                     #standardise slashes
                     $filepath = $file.FullName -replace('\\','/')
                     $relativePath = ($file.FullName -split("$($moduleDir.Name)/"))[1]
-                    $relativePath
                     $uploadPath = "$versionedPath/$relativePath"
-                    Write-Output "Uploading $uploadPath..."
                     Set-AzStorageBlobContent -File $file.FullName -Container $containerName -Blob $uploadPath -Context $storageContext -Force | Out-Null
                 }
             }
