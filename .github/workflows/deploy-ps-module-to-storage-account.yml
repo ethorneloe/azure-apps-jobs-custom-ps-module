@@ -40,7 +40,7 @@ jobs:
             # Get all module directories
             $moduleDirs = Get-ChildItem -Path $sourcePath -Directory
 
-            $storageContext = New-AzStorageContext -StorageAccountName $storageAccount -UseConnectedAccount
+            $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName -UseConnectedAccount
 
             # Loop through each module directory and deploy versioned folder
             foreach ($moduleDir in $moduleDirs) {
