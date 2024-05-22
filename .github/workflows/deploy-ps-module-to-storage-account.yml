@@ -34,7 +34,7 @@ jobs:
 
             # Sync the PowerShell folder to the Azure Storage container
             $sourcePath = "./powershell/modules"
-            $containerName = '${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}'
+            $containerName = '${{ vars.AZURE_STORAGE_ACCOUNT_CONTAINER_NAME }}'
             $storageAccountName = '${{ vars.AZURE_STORAGE_ACCOUNT_NAME }}'
 
             # Get all module directories
